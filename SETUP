@@ -1,0 +1,619 @@
+# Setup Guide - Unified Esports Tournament Management System
+
+## Table of Contents
+1. [Environment Setup](#environment-setup)
+2. [Firebase Configuration](#firebase-configuration)
+3. [Project Setup](#project-setup)
+4. [Running the Application](#running-the-application)
+5. [Troubleshooting](#troubleshooting)
+
+---
+
+## Environment Setup
+
+### Step 1: Install Required Software
+
+#### Windows 10/11
+
+**1.1 Download and Install JDK**
+```bash
+# Download Java Development Kit 11 or higher
+# Option A: OpenJDK 11
+https://adoptopenjdk.net/
+
+# Option B: Oracle JDK
+https://www.oracle.com/java/technologies/downloads/#java11
+
+# Verify installation
+java -version
+javac -version
+```
+
+**1.2 Set JAVA_HOME Environment Variable**
+```
+1. Right-click "This PC" or "My Computer"
+2. Click "Properties"
+3. Click "Advanced system settings"
+4. Click "Environment Variables"
+5. Under "System variables", click "New"
+6. Variable name: JAVA_HOME
+7. Variable value: C:\Program Files\Java\jdk-11.x.x (your JDK path)
+8. Click OK
+```
+
+**1.3 Download and Install Android Studio**
+```
+1. Go to https://developer.android.com/studio
+2. Download latest version
+3. Run installer and follow prompts
+4. Choose "Standard Setup" during installation
+5. Install Android SDK, Android Emulator, Android SDK Platform
+6. Location: C:\Users\[YourUsername]\AppData\Local\Android\Sdk
+```
+
+**1.4 Verify Android Studio Installation**
+- Open Android Studio
+- Check SDK Manager (Tools → SDK Manager)
+- Ensure these are installed:
+  - Android SDK Platform 33 (or latest)
+  - Android SDK Build-Tools 33.0.1
+  - Android Emulator
+  - Google APIs Intel x86 Atom_64 System Image
+
+#### macOS
+
+```bash
+# Install using Homebrew
+brew tap adoptopenjdk/openjdk
+brew cask install adoptopenjdk11
+
+# Download Android Studio
+# Go to https://developer.android.com/studio
+# Download macOS version and follow installation wizard
+```
+
+#### Linux (Ubuntu/Debian)
+
+```bash
+# Install JDK
+sudo apt-get update
+sudo apt-get install openjdk-11-jdk
+
+# Verify
+java -version
+
+# Download Android Studio from official website
+# https://developer.android.com/studio
+```
+
+---
+
+## Firebase Configuration
+
+### Step 1: Create Firebase Project
+
+**1.1 Go to Firebase Console**
+```
+https://console.firebase.google.com/
+```
+
+**1.2 Create New Project**
+```
+1. Click "Create a project" or "Add project"
+2. Project name: "EsportsTournamentManager" (or your choice)
+3. Disable "Enable Google Analytics" (optional)
+4. Click "Create project"
+5. Wait for project creation (1-2 minutes)
+```
+
+**1.3 Register Android App**
+```
+1. In Firebase Console, click "Add app"
+2. Select "Android"
+3. Fill Android package name: com.thethirdeye.esport.thethirdeye
+4. Leave "Debug signing certificate SHA-1" blank for now
+5. Click "Register app"
+6. Download "google-services.json"
+7. Click "Next" to complete setup
+```
+
+### Step 2: Enable Firebase Services
+
+**2.1 Enable Authentication**
+```
+1. In Firebase Console, go to "Authentication"
+2. Click "Get started"
+3. Click "Email/Password"
+4. Toggle "Enable"
+5. Click "Save"
+6. Click "Google"
+7. Toggle "Enable"
+8. Add project support email
+9. Click "Save"
+```
+
+**2.2 Create Firestore Database**
+```
+1. Go to "Firestore Database"
+2. Click "Create database"
+3. Select "Start in test mode" (for development)
+4. Choose region: "asia-south1" (India) or nearest to you
+5. Click "Enable"
+6. Wait for database creation
+```
+
+**2.3 Enable Realtime Database**
+```
+1. Go to "Realtime Database"
+2. Click "Create Database"
+3. Select region: "asia-south1"
+4. Start in "Test mode"
+5. Click "Enable"
+```
+
+**2.4 Set Up Cloud Messaging**
+```
+1. Go to "Cloud Messaging"
+2. Copy "Server API Key" for later use
+3. This will be used for sending notifications
+```
+
+### Step 3: Download google-services.json
+
+```
+1. After registering app in Firebase
+2. Download google-services.json file
+3. Place in: YourProject/app/google-services.json
+4. Do NOT commit this file to public repositories
+```
+
+### Step 4: Configure Firestore Security Rules
+
+```
+In Firebase Console → Firestore Database → Rules
+Replace with test rules for development:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+  }
+}
+
+Click "Publish"
+```
+
+---
+
+## Project Setup
+
+### Step 1: Clone Repository
+
+```bash
+# Using Git
+git clone https://github.com/yourusername/esports-tournament-manager.git
+cd esports-tournament-manager
+
+# Or if you have the source as ZIP
+unzip esports-tournament-manager.zip
+cd esports-tournament-manager
+```
+
+### Step 2: Add google-services.json
+
+```bash
+# Copy the downloaded google-services.json
+cp ~/Downloads/google-services.json app/
+
+# Verify it's in the right location
+ls app/google-services.json
+# Should output: app/google-services.json
+```
+
+### Step 3: Open in Android Studio
+
+```
+1. Open Android Studio
+2. Click "File" → "Open"
+3. Navigate to project directory
+4. Select the folder and click "Open"
+5. Wait for Gradle sync to complete (2-5 minutes)
+```
+
+### Step 4: Check Gradle Sync
+
+```
+Look at the bottom of Android Studio:
+- If you see: "Gradle sync finished successfully" ✓
+- If you see errors, try:
+  - File → Invalidate Caches / Restart
+  - Click "Sync Now" in the notification bar
+```
+
+### Step 5: Verify SDK Installation
+
+```
+In Android Studio:
+1. Tools → SDK Manager
+2. Verify these are installed:
+   - Android SDK Platform (API 33+)
+   - Android SDK Build-Tools (33+)
+   - Google APIs Intel x86 Atom System Image
+   - Android Emulator
+```
+
+### Step 6: Configure Build Settings (if needed)
+
+Open `app/build.gradle` and verify:
+
+```gradle
+android {
+    compileSdkVersion 33
+    
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+    // Firebase
+    implementation 'com.google.firebase:firebase-auth:21.x.x'
+    implementation 'com.google.firebase:firebase-firestore:24.x.x'
+    implementation 'com.google.firebase:firebase-messaging:23.x.x'
+    
+    // Kotlin
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.96'
+}
+```
+
+---
+
+## Running the Application
+
+### Option 1: Using Android Emulator
+
+**1.1 Create Emulator**
+```
+1. In Android Studio, click "AVD Manager" (Tools → AVD Manager)
+2. Click "Create Virtual Device"
+3. Select device: Pixel 4
+4. Select system image: Android 13 (API 33)
+5. Finish creation
+6. Click "Play" button to start emulator
+```
+
+**1.2 Run App on Emulator**
+```
+1. In Android Studio, click "Run" or press Shift + F10
+2. Select the emulator from the list
+3. Click "OK"
+4. App will build and run on emulator (1-2 minutes)
+```
+
+### Option 2: Using Physical Device
+
+**2.1 Enable Developer Mode**
+```
+For Android devices:
+1. Go to Settings
+2. Tap "About phone"
+3. Find "Build number"
+4. Tap "Build number" 7 times
+5. Go back to Settings
+6. Find "Developer options"
+7. Enable "USB Debugging"
+8. Connect device via USB
+9. Click "Trust" on device prompt
+```
+
+**2.2 Run App on Device**
+```
+1. Connect Android device via USB
+2. In Android Studio, click "Run" or press Shift + F10
+3. Select your device from list
+4. Click "OK"
+5. App will install and run
+```
+
+### Option 3: Build APK
+
+```bash
+# Debug APK
+./gradlew assembleDebug
+# Output: app/build/outputs/apk/debug/app-debug.apk
+
+# Release APK (requires signing key)
+./gradlew assembleRelease
+# Output: app/build/outputs/apk/release/app-release.apk
+
+# To install APK manually
+adb install app/build/outputs/apk/debug/app-debug.apk
+```
+
+---
+
+## Testing the Application
+
+### Test User Accounts
+
+**Admin Account (for testing)**
+```
+Email: admin@esports.com
+Password: Admin@123
+```
+
+**Player Account (for testing)**
+```
+Email: player@esports.com
+Password: Player@123
+```
+
+**Spectator Account (for testing)**
+```
+Email: spectator@esports.com
+Password: Spectator@123
+```
+
+### First Run Setup
+
+```
+1. Launch app
+2. You'll see login screen
+3. Click "Don't have an account? Sign up"
+4. Create new account with your email
+5. Verify email (check spam folder if needed)
+6. Login with your credentials
+7. Setup complete!
+```
+
+### Test Key Features
+
+```
+Admin Account:
+1. Create new tournament
+   - Tournament name: "Test Tournament"
+   - Game: "BGMI"
+   - Prize Pool: ₹10,00,000
+   - Entry Fee: ₹500
+2. Create match room
+3. Send notifications
+4. View all tournaments
+
+Player Account:
+1. Browse tournaments
+2. Register for tournament
+3. Check leaderboard
+4. View match updates
+
+Spectator Account:
+1. Browse tournaments
+2. Watch live streams
+3. View leaderboards
+```
+
+---
+
+## Troubleshooting
+
+### Issue 1: Gradle Sync Fails
+
+**Error Message**: "Failed to apply plugin"
+
+**Solution**:
+```bash
+# Clean and rebuild
+./gradlew clean
+./gradlew sync
+
+# If still fails:
+# 1. File → Invalidate Caches / Restart
+# 2. Delete .gradle folder in project
+# 3. Retry gradle sync
+```
+
+### Issue 2: Firebase Connection Error
+
+**Error Message**: "Connection refused" or "Failed to initialize Firebase"
+
+**Solution**:
+```
+1. Verify google-services.json is in app/ folder
+2. Check internet connection
+3. Verify Firebase project is created
+4. Check package name matches in Firebase Console:
+   com.thethirdeye.esport.thethirdeye
+```
+
+### Issue 3: APK Installation Failed
+
+**Error Message**: "Installation failed with message..."
+
+**Solution**:
+```bash
+# Check device compatibility
+adb devices -l
+
+# Clear app data
+adb shell pm clear com.thethirdeye.esport.thethirdeye
+
+# Reinstall
+./gradlew installDebug
+```
+
+### Issue 4: Emulator Not Starting
+
+**Error Message**: "Failed to start emulator"
+
+**Solution**:
+```
+1. Check HAXM is installed (Windows/Mac)
+2. Increase emulator RAM in AVD Manager
+3. Try with different system image
+4. Restart Android Studio
+5. Check virtualization is enabled in BIOS
+```
+
+### Issue 5: App Crashes on Launch
+
+**Error Message**: "App keeps stopping"
+
+**Solution**:
+1. Check Logcat for detailed error:
+   - View → Tool Windows → Logcat
+2. Common causes:
+   - Firebase not initialized
+   - Missing permissions in AndroidManifest.xml
+   - Incorrect google-services.json
+
+3. Verify AndroidManifest.xml has:
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
+
+### Issue 6: Database Queries Not Working
+
+**Error Message**: "Failed to fetch data" or no data displayed
+
+**Solution**:
+1. Check Firestore rules in Firebase Console
+2. Verify collections exist in Firestore
+3. Check user is authenticated
+4. Add test data:
+   ```
+   Firebase Console → Firestore → Start collection
+   Create test documents
+   ```
+
+### Issue 7: Notifications Not Arriving
+
+**Error Message**: "Notifications not received"
+
+**Solution**:
+1. Check FCM enabled in Firebase
+2. Verify notification permissions on device:
+   - Settings → Apps → YourApp → Notifications
+3. Check logcat for FCM errors
+4. Ensure device has play services installed
+
+---
+
+## Performance Optimization Tips
+
+### For Development Machine
+```
+1. Close unnecessary applications
+2. Allocate more RAM to Android Studio:
+   Help → Edit Custom Properties
+   Add: -Xmx4096m
+3. Use SSD for faster builds
+4. Enable "Instant Run" in Run menu
+```
+
+### For Emulator
+```
+1. Use latest system image
+2. Allocate sufficient RAM (2-4GB)
+3. Use x86_64 architecture
+4. Enable "Use Host GPU" in emulator settings
+```
+
+### For App
+```
+1. Use ProGuard for release builds
+2. Optimize images and assets
+3. Use ViewBinding instead of findViewById
+4. Implement proper caching strategies
+```
+
+---
+
+## Useful Commands
+
+```bash
+# Clean build
+./gradlew clean
+
+# Build debug APK
+./gradlew assembleDebug
+
+# Build release APK
+./gradlew assembleRelease
+
+# Run unit tests
+./gradlew test
+
+# Run instrumented tests
+./gradlew connectedAndroidTest
+
+# Check dependencies
+./gradlew dependencies
+
+# Update dependencies
+./gradlew dependencyUpdates
+
+# Enable verbose logging
+./gradlew build --stacktrace --debug
+
+# List tasks
+./gradlew tasks
+```
+
+---
+
+## Next Steps
+
+After successful setup:
+
+1. **Explore the Codebase**
+   - Check `admin/` package for admin features
+   - Check `auth/` package for authentication logic
+   - Review `model/` package for data structures
+
+2. **Understand Firebase Integration**
+   - Review how Firestore queries work
+   - Check authentication implementation
+   - Understand real-time database listeners
+
+3. **Customize the App**
+   - Change app name in `strings.xml`
+   - Update colors in `colors.xml`
+   - Modify UI in layout files
+
+4. **Test Thoroughly**
+   - Create multiple test accounts
+   - Test all major features
+   - Check edge cases and error scenarios
+
+5. **Read Documentation**
+   - See main [README.md](README.md)
+   - Check inline code comments
+   - Review project documentation
+
+---
+
+## Getting Help
+
+### Resources
+- [Android Developer Documentation](https://developer.android.com/docs)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Kotlin Documentation](https://kotlinlang.org/docs)
+
+### Common Issues Database
+Check GitHub Issues for solutions to common problems
+
+### Contact Support
+- Email: cse@sistec.ac.in
+- Faculty Guide: Prof. Pankaj Savita
+
+---
+
+**Happy Coding! 🚀**
