@@ -1,0 +1,632 @@
+# Contributing to Unified Esports Tournament Management System
+
+Thank you for your interest in contributing to the Unified Esports Tournament Management System! This document provides guidelines and instructions for contributing to the project.
+
+## Table of Contents
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Workflow](#development-workflow)
+- [Coding Standards](#coding-standards)
+- [Commit Guidelines](#commit-guidelines)
+- [Pull Request Process](#pull-request-process)
+- [Testing Guidelines](#testing-guidelines)
+- [Documentation Standards](#documentation-standards)
+- [Bug Reports](#bug-reports)
+- [Feature Requests](#feature-requests)
+
+---
+
+## Code of Conduct
+
+### Our Pledge
+
+We are committed to providing a welcoming and inspiring community for all. Please be respectful, constructive, and inclusive in all interactions.
+
+### Expected Behavior
+- Be professional and courteous
+- Respect diverse opinions and backgrounds
+- Give credit where credit is due
+- Be patient and helpful
+- Report inappropriate behavior
+
+### Unacceptable Behavior
+- Harassment or discrimination
+- Abusive or disrespectful language
+- Personal attacks
+- Spam or unwanted promotion
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Android Studio (Latest version)
+- JDK 11 or higher
+- Git
+- Basic knowledge of Kotlin and Android development
+- Firebase account
+
+### Fork & Clone Repository
+
+```bash
+# 1. Fork the repository on GitHub
+# Visit: https://github.com/yourusername/esports-tournament-manager
+# Click "Fork" button
+
+# 2. Clone your fork
+git clone https://github.com/YOUR_USERNAME/esports-tournament-manager.git
+cd esports-tournament-manager
+
+# 3. Add upstream remote
+git remote add upstream https://github.com/ORIGINAL_OWNER/esports-tournament-manager.git
+
+# 4. Verify remotes
+git remote -v
+# Should show:
+# origin    https://github.com/YOUR_USERNAME/esports-tournament-manager.git
+# upstream  https://github.com/ORIGINAL_OWNER/esports-tournament-manager.git
+```
+
+### Setup Development Environment
+
+```bash
+# 1. Create and checkout feature branch
+git checkout -b feature/your-feature-name
+
+# 2. Configure your Firebase project
+# Add google-services.json to app/ directory
+
+# 3. Open in Android Studio
+# File → Open → Select project directory
+
+# 4. Build the project
+./gradlew clean build
+
+# 5. Run tests
+./gradlew test
+```
+
+---
+
+## Development Workflow
+
+### 1. Identify Issues to Work On
+
+```
+a) Check GitHub Issues: https://github.com/yourusername/esports-tournament-manager/issues
+b) Look for issues marked:
+   - "good first issue" (for beginners)
+   - "help wanted"
+   - Your area of expertise
+c) Comment on issue to express interest
+d) Wait for maintainer approval before starting
+```
+
+### 2. Create Feature Branch
+
+```bash
+# Use descriptive branch names
+git checkout -b feature/add-live-streaming
+git checkout -b bugfix/fix-login-crash
+git checkout -b docs/update-readme
+
+# Branch naming convention:
+# feature/description - for new features
+# bugfix/description - for bug fixes
+# docs/description - for documentation
+# refactor/description - for code refactoring
+# test/description - for test improvements
+```
+
+### 3. Make Changes
+
+```bash
+# Write code and commit regularly
+git add .
+git commit -m "Add feature X"
+
+# Keep commits focused and meaningful
+# Make small, logical commits
+```
+
+### 4. Sync with Upstream
+
+```bash
+# Before submitting PR, sync with upstream
+git fetch upstream
+git rebase upstream/main
+# or
+git merge upstream/main
+```
+
+### 5. Push to Your Fork
+
+```bash
+git push origin feature/your-feature-name
+```
+
+### 6. Create Pull Request
+
+- Go to your fork on GitHub
+- Click "Compare & pull request"
+- Fill in the PR template
+- Submit for review
+
+---
+
+## Coding Standards
+
+### Kotlin Style Guide
+
+#### Naming Conventions
+
+```kotlin
+// Classes: PascalCase
+class AdminMainActivity : AppCompatActivity()
+data class TournamentModel(val id: String, val title: String)
+
+// Functions/Methods: camelCase
+fun getTournaments() {}
+fun createNewTournament() {}
+
+// Variables: camelCase
+val tournamentList = ArrayList<Tournament>()
+var isLoading = false
+
+// Constants: UPPER_SNAKE_CASE
+companion object {
+    const val DATABASE_URL = "https://..."
+    const val TIMEOUT_SECONDS = 30
+}
+
+// Private members: prefix with underscore (optional)
+private val _tournamentList = MutableLiveData<List<Tournament>>()
+val tournamentList: LiveData<List<Tournament>> = _tournamentList
+```
+
+#### Code Structure
+
+```kotlin
+// Class organization:
+class AdminMainActivity : AppCompatActivity() {
+    
+    // 1. Companion object
+    companion object {
+        private const val TAG = "AdminMainActivity"
+    }
+    
+    // 2. Properties
+    private val binding: ActivityAdminMainBinding by lazy {
+        ActivityAdminMainBinding.inflate(layoutInflater)
+    }
+    private val db = FirebaseFirestore.getInstance()
+    
+    // 3. Lifecycle methods
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+    }
+    
+    // 4. Public methods
+    fun loadTournaments() {
+        // implementation
+    }
+    
+    // 5. Private methods
+    private fun setupListeners() {
+        // implementation
+    }
+}
+```
+
+#### Comments and Documentation
+
+```kotlin
+/**
+ * Loads all tournaments from Firestore database.
+ * This function is called when the app starts.
+ *
+ * @return List of Tournament objects
+ */
+fun loadTournaments(): List<Tournament> {
+    // Single line comment for brief explanation
+    val tournaments = ArrayList<Tournament>()
+    
+    // Multiple lines for complex logic
+    // This checks if the tournament is active
+    // before adding it to the list
+    for (tournament in allTournaments) {
+        if (tournament.status == "ACTIVE") {
+            tournaments.add(tournament)
+        }
+    }
+    
+    return tournaments
+}
+```
+
+#### Best Practices
+
+```kotlin
+// ✓ Good: Use val instead of var
+val result = calculateScore()
+
+// ✓ Good: Use when instead of if-else for multiple conditions
+when (role) {
+    "admin" -> showAdminPanel()
+    "player" -> showPlayerDashboard()
+    "spectator" -> showLiveMatches()
+}
+
+// ✓ Good: Use scope functions
+Tournament().apply {
+    title = "Tournament Name"
+    prizePool = 1000000
+    entryFee = 500
+}.also { saveTournament(it) }
+
+// ✗ Avoid: Null pointer exceptions
+val name = user?.name ?: "Unknown"
+
+// ✓ Good: Use safe calls and let
+user?.let { safeUser ->
+    loadUserProfile(safeUser.id)
+}
+```
+
+---
+
+## Commit Guidelines
+
+### Commit Message Format
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Example Commits
+
+```bash
+# Feature
+git commit -m "feat(tournaments): add live tournament filter
+
+- Added live filter button to tournament list
+- Implements real-time filtering of active tournaments
+- Improves user experience for browsing live events"
+
+# Bug Fix
+git commit -m "fix(auth): resolve login crash on invalid email
+
+- Handle null pointer exception in email validation
+- Add proper error handling for Firebase auth failures
+- Fixes issue #123"
+
+# Documentation
+git commit -m "docs: update setup instructions for Firebase
+
+- Add step-by-step Firebase configuration guide
+- Include troubleshooting section for common issues"
+
+# Refactor
+git commit -m "refactor(ui): simplify tournament card layout
+
+- Extract common styling logic
+- Reduce code duplication by 30%
+- Improve maintainability"
+```
+
+### Commit Types
+
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation changes |
+| `style` | Code style changes (formatting, etc.) |
+| `refactor` | Code refactoring |
+| `perf` | Performance improvements |
+| `test` | Test additions/changes |
+| `chore` | Build, dependencies, etc. |
+
+---
+
+## Pull Request Process
+
+### Before Submitting PR
+
+- [ ] Code follows project style guidelines
+- [ ] All tests pass: `./gradlew test`
+- [ ] New code includes appropriate tests
+- [ ] Documentation is updated
+- [ ] Commit messages are clear and descriptive
+- [ ] No merge conflicts with main branch
+- [ ] No sensitive information is committed
+
+### PR Description Template
+
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] New feature
+- [ ] Bug fix
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Related Issue
+Closes #(issue number)
+
+## Changes Made
+- Change 1
+- Change 2
+- Change 3
+
+## Testing Done
+- [ ] Unit tests written
+- [ ] Manual testing completed
+- [ ] No new warnings
+
+## Screenshots (if applicable)
+Add screenshots for UI changes
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Tests pass locally
+- [ ] Documentation updated
+- [ ] No breaking changes
+```
+
+### PR Review Process
+
+1. **Automatic Checks**
+   - Tests must pass
+   - Code style verified
+   - Merge conflicts resolved
+
+2. **Code Review**
+   - Maintainers review code
+   - Feedback provided
+   - Discussion on changes
+
+3. **Approval & Merge**
+   - At least 2 approvals required
+   - Maintainer merges PR
+   - Branch is deleted
+
+---
+
+## Testing Guidelines
+
+### Writing Tests
+
+```kotlin
+import org.junit.Test
+import org.junit.Before
+import androidx.test.ext.junit.runners.AndroidJUnit4
+
+@RunWith(AndroidJUnit4::class)
+class TournamentModelTest {
+    
+    private lateinit var tournament: TournamentModel
+    
+    @Before
+    fun setUp() {
+        tournament = TournamentModel(
+            id = "1",
+            title = "Test Tournament",
+            prizePool = 100000.0,
+            entryFee = 500.0
+        )
+    }
+    
+    @Test
+    fun testTournamentCreation() {
+        assertEquals("Test Tournament", tournament.title)
+        assertEquals(100000.0, tournament.prizePool)
+    }
+    
+    @Test
+    fun testTournamentValidation() {
+        assertTrue(tournament.isValid())
+    }
+}
+```
+
+### Running Tests
+
+```bash
+# Unit tests
+./gradlew test
+
+# Instrumented tests
+./gradlew connectedAndroidTest
+
+# Specific test class
+./gradlew test --tests TournamentModelTest
+
+# With coverage
+./gradlew testDebugUnitTest
+
+# View test results
+# Open: app/build/reports/tests/testDebugUnitTest/index.html
+```
+
+### Test Coverage Requirements
+
+- Minimum 70% code coverage for new code
+- All critical functions must have tests
+- Edge cases and error scenarios tested
+
+---
+
+## Documentation Standards
+
+### Code Documentation
+
+```kotlin
+/**
+ * Saves a tournament to Firestore database.
+ *
+ * @param tournament The tournament object to save
+ * @param onSuccess Callback when save is successful
+ * @param onFailure Callback with error message if save fails
+ * @return Task object for async operation
+ */
+fun saveTournament(
+    tournament: TournamentModel,
+    onSuccess: () -> Unit,
+    onFailure: (String) -> Unit
+): Task<Void>
+```
+
+### README Updates
+
+When adding features:
+1. Update main README.md with feature description
+2. Add to Table of Contents if new section
+3. Include usage examples
+4. Update Tech Stack if new technology used
+
+### Changelog Entry
+
+Add to CHANGELOG.md:
+
+```markdown
+## [1.1.0] - 2024-05-21
+
+### Added
+- Feature: Live tournament streaming
+- Feature: Advanced analytics dashboard
+
+### Fixed
+- Bug: Login crash on invalid email
+- Bug: Notification delivery delay
+
+### Changed
+- Improved tournament search performance
+```
+
+---
+
+## Bug Reports
+
+### How to Report Bugs
+
+1. **Check existing issues** to avoid duplicates
+2. **Use the bug report template**
+3. **Provide detailed information**
+
+### Bug Report Template
+
+```markdown
+## Description
+Clear and concise description of the bug
+
+## Steps to Reproduce
+1. Step 1
+2. Step 2
+3. Step 3
+
+## Expected Behavior
+What should happen
+
+## Actual Behavior
+What actually happens
+
+## Screenshots/Logs
+Attach screenshots or error logs
+
+## Environment
+- Device: [e.g., Pixel 4, Samsung S21]
+- Android Version: [e.g., 11, 12]
+- App Version: [e.g., 1.0.0]
+- Firebase Region: [e.g., asia-south1]
+
+## Additional Context
+Any other context that might help
+```
+
+---
+
+## Feature Requests
+
+### Feature Request Template
+
+```markdown
+## Description
+Clear description of the feature
+
+## Use Case
+Why this feature is needed
+
+## Proposed Solution
+How the feature should work
+
+## Alternatives Considered
+Other possible solutions
+
+## Additional Context
+Mockups, references, or examples
+```
+
+---
+
+## Development Tools & Resources
+
+### Recommended Tools
+- **Code Editor**: Android Studio with Kotlin plugin
+- **Version Control**: Git with GitHub
+- **Testing**: JUnit 4, Espresso, Mockito
+- **Code Analysis**: Lint, SonarQube
+- **Debugging**: Android Logcat, Firebase Console
+
+### Useful Plugins
+- SonarLint - Code quality issues
+- Kotlin Linter - Code style checking
+- Firebase Emulator - Local Firebase testing
+
+### Documentation Resources
+- [Android Developer Guide](https://developer.android.com/guide)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [Kotlin Language Guide](https://kotlinlang.org/docs/home.html)
+
+---
+
+## Questions & Support
+
+### Getting Help
+1. Check existing documentation
+2. Search GitHub Issues
+3. Ask on Discussion forum
+4. Email: cse@sistec.ac.in
+
+### Response Times
+- Bug reports: 24-48 hours
+- Feature requests: 48-72 hours
+- General questions: Best effort basis
+
+---
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the same license as the project (Academic License).
+
+---
+
+## Recognition
+
+Contributors will be recognized in:
+- Project README contributors section
+- Release notes
+- Project website (if applicable)
+
+Thank you for contributing! 🎉
+
+---
+
+**Last Updated**: June 2026
